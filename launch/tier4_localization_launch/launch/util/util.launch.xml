@@ -11,12 +11,31 @@
   <!-- option -->
   <arg name="use_intra_process" default="true" description="use ROS 2 component container communication"/>
 
-  <!-- pose_initializer -->
+  <!-- pose_initializer - lidar -->
   <group>
+    <push-ros-namespace namespace="lidar"/>
     <include file="$(find-pkg-share pose_initializer)/launch/pose_initializer.launch.xml">
       <arg name="common_config_file" value="$(var pose_initializer_common_param_path)"/>
-      <arg name="config_file" value="$(var pose_initializer_param_path)"/>
+      <arg name="config_file" value="$(var loc_config_path)/pose_initializer.logging_simulator.lidar.param.yaml"/>
       <arg name="sub_gnss_pose_cov" value="/sensing/gnss/pose_with_covariance"/>
+      <arg name="ekf_trigger_node" value="/localization/pose_twist_fusion_filter/trigger_node"/>
+      <arg name="ndt_trigger_node" value="/localization/pose_estimator/trigger_node"/>
+      <arg name="pose_reset" value="/initialpose3d"/>
+      <arg name="partial_map_load" value="/map/get_partial_pointcloud_map"/>
+    </include>
+  </group>
+
+  <!-- pose_initializer - camera -->
+  <group>
+    <push-ros-namespace namespace="camera"/>
+    <include file="$(find-pkg-share pose_initializer)/launch/pose_initializer.launch.xml">
+      <arg name="common_config_file" value="$(var pose_initializer_common_param_path)"/>
+      <arg name="config_file" value="$(var loc_config_path)/yabloc/pose_initializer.logging_simulator.yabloc.param.yaml"/>
+      <arg name="sub_gnss_pose_cov" value="/sensing/gnss/pose_with_covariance"/>
+      <arg name="ekf_trigger_node" value="/localization/pose_twist_fusion_filter_camera/trigger_node"/>
+      <arg name="ndt_trigger_node" value="/localization/pose_estimator_camera/trigger_node"/>
+      <arg name="pose_reset" value="/initialpose3d_camera"/>
+      <arg name="partial_map_load" value="/map/get_partial_pointcloud_map_camera"/>
     </include>
   </group>
 

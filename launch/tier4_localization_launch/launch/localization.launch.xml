@@ -28,27 +28,95 @@
       </include>
     </group>
     <!-- pose_estimator module -->
-    <group if="$(eval '&quot;$(var mode)&quot;==&quot;lidar&quot;')">
-      <push-ros-namespace namespace="pose_estimator"/>
-      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/pose_estimator.launch.xml"/>
-    </group>
-    <group if="$(eval '&quot;$(var mode)&quot;==&quot;camera&quot;')">
-      <push-ros-namespace namespace="yabloc"/>
-      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/yabloc.launch.xml"/>
-    </group>
+<!--    <group if="$(eval '&quot;$(var mode)&quot;==&quot;lidar&quot;')">-->
+<!--      <push-ros-namespace namespace="pose_estimator"/>-->
+<!--      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/pose_estimator.launch.xml"/>-->
+<!--    </group>-->
+<!--    <group if="$(eval '&quot;$(var mode)&quot;==&quot;camera&quot;')">-->
+<!--      <push-ros-namespace namespace="yabloc"/>-->
+<!--      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/yabloc.launch.xml"/>-->
+<!--    </group>-->
     <!-- twist_estimator module -->
     <group>
       <push-ros-namespace namespace="twist_estimator"/>
       <include file="$(find-pkg-share tier4_localization_launch)/launch/twist_estimator/twist_estimator.launch.xml"/>
     </group>
     <!-- pose_twist_fusion_filter module -->
-    <group>
-      <push-ros-namespace namespace="pose_twist_fusion_filter"/>
-      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_twist_fusion_filter/pose_twist_fusion_filter.launch.xml"/>
-    </group>
+<!--    <group>-->
+<!--      <push-ros-namespace namespace="pose_twist_fusion_filter"/>-->
+<!--      <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_twist_fusion_filter/pose_twist_fusion_filter.launch.xml"/>-->
+<!--    </group>-->
     <!-- localization_error_monitor_module -->
     <group>
       <include file="$(find-pkg-share tier4_localization_launch)/launch/localization_error_monitor/localization_error_monitor.launch.xml"/>
     </group>
   </group>
+
+  <!-- NDT POSE ESTIMATOR -->
+  <group>
+    <push-ros-namespace namespace="pose_estimator"/>
+    <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/pose_estimator.launch.xml">
+      <arg name="input_map_points_topic" value="/map/pointcloud_map"/>
+      <arg name="input/pointcloud" value="/localization/util/downsample/pointcloud"/>
+      <arg name="input_initial_pose_topic" value="/localization/pose_twist_fusion_filter/biased_pose_with_covariance"/>
+      <arg name="output_pose_topic" value="/localization/pose_estimator/pose"/>
+      <arg name="output_pose_with_covariance_topic" value="/localization/pose_estimator/pose_with_covariance"/>
+    </include>
+  </group>
+  <!-- NDT EKF -->
+  <group>
+    <push-ros-namespace namespace="pose_twist_fusion_filter"/>
+    <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_twist_fusion_filter/pose_twist_fusion_filter.launch.xml">
+      <arg name="input_initial_pose_name" value="/initialpose3d"/>
+      <arg name="input_pose_with_cov_name" value="/localization/pose_estimator/pose_with_covariance"/>
+      <arg name="input_twist_with_cov_name" value="/localization/twist_estimator/twist_with_covariance"/>
+      <arg name="output_odom_name" value="kinematic_state"/>
+      <arg name="output_pose_name" value="pose"/>
+      <arg name="output_pose_with_covariance_name" value="/localization/pose_with_covariance"/>
+      <arg name="output_biased_pose_name" value="biased_pose"/>
+      <arg name="output_biased_pose_with_covariance_name" value="biased_pose_with_covariance"/>
+      <arg name="output_twist_name" value="twist"/>
+      <arg name="output_twist_with_covariance_name" value="twist_with_covariance"/>
+      <arg name="param_file" value="$(var ekf_localizer_param_path)"/>
+      <arg name="use_twist_with_covariance" value="True"/>
+      <arg name="input_odom_name" value="/localization/pose_twist_fusion_filter/kinematic_state"/>
+      <arg name="input_twist_with_covariance_name" value="/localization/pose_twist_fusion_filter/twist_with_covariance"/>
+      <arg name="use_odom" value="true"/>
+      <arg name="in_odom" value="/localization/kinematic_state"/>
+      <arg name="in_twist" value="/localization/twist_estimator/twist_with_covariance"/>
+      <arg name="out_accel" value="/localization/acceleration"/>
+    </include>
+  </group>
+
+  <!-- YABLOC POSE ESTIMATOR -->
+  <group>
+    <push-ros-namespace namespace="yabloc"/>
+    <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_estimator/yabloc.launch.xml"/>
+  </group>
+  <!-- YABLOC EKF -->
+  <group>
+    <push-ros-namespace namespace="pose_twist_fusion_filter_camera"/>
+    <include file="$(find-pkg-share tier4_localization_launch)/launch/pose_twist_fusion_filter/pose_twist_fusion_filter.launch.xml">
+      <arg name="input_initial_pose_name" value="/initialpose3d_camera"/>
+      <arg name="input_pose_with_cov_name" value="/localization/pose_estimator/pose_with_covariance_camera"/>
+      <arg name="input_twist_with_cov_name" value="/localization/twist_estimator/twist_with_covariance"/>
+      <arg name="output_odom_name" value="kinematic_state"/>
+      <arg name="output_pose_name" value="pose"/>
+      <arg name="output_pose_with_covariance_name" value="/localization/pose_with_covariance_camera"/>
+      <arg name="output_biased_pose_name" value="biased_pose"/>
+      <arg name="output_biased_pose_with_covariance_name" value="biased_pose_with_covariance"/>
+      <arg name="output_twist_name" value="twist"/>
+      <arg name="output_twist_with_covariance_name" value="twist_with_covariance"/>
+      <arg name="param_file" value="$(var ekf_localizer_param_path)"/>
+      <arg name="use_twist_with_covariance" value="True"/>
+      <arg name="input_odom_name" value="/localization/pose_twist_fusion_filter_camera/kinematic_state"/>
+      <arg name="input_twist_with_covariance_name" value="/localization/pose_twist_fusion_filter_camera/twist_with_covariance"/>
+      <arg name="output_odom_name2" value="/localization/kinematic_state_camera"/>
+      <arg name="use_odom" value="true"/>
+      <arg name="in_odom" value="/localization/kinematic_state"/>
+      <arg name="in_twist" value="/localization/twist_estimator/twist_with_covariance"/>
+      <arg name="out_accel" value="/localization/acceleration"/>
+    </include>
+  </group>
+
 </launch>
