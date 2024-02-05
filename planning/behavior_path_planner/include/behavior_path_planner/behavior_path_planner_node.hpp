@@ -16,6 +16,7 @@
 #define BEHAVIOR_PATH_PLANNER__BEHAVIOR_PATH_PLANNER_NODE_HPP_
 
 #include "behavior_path_planner/planner_manager.hpp"
+#include "behavior_path_planner/utils/map_update_module.hpp"
 #include "behavior_path_planner_common/data_manager.hpp"
 #include "behavior_path_planner_common/interface/scene_module_interface.hpp"
 #include "behavior_path_planner_common/interface/steering_factor_interface.hpp"
@@ -122,6 +123,11 @@ private:
   std::mutex mutex_manager_;  // mutex for bt_manager_ or planner_manager_
   std::mutex mutex_map_;      // mutex for has_received_map_ and map_ptr_
   std::mutex mutex_route_;    // mutex for has_received_route_ and route_ptr_
+
+  // dynamic lanelet loading
+  bool is_dynamic_map_loading_enabled_;
+  std::unique_ptr<MapUpdateModule> map_update_module_ptr_;
+  std::function<void(const HADMapBin::ConstSharedPtr)> map_update_function_;
 
   // setup
   bool isDataReady();

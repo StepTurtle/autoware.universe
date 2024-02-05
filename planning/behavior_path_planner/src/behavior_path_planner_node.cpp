@@ -163,6 +163,15 @@ BehaviorPathPlannerNode::BehaviorPathPlannerNode(const rclcpp::NodeOptions & nod
 
   steering_factor_interface_ptr_ = std::make_unique<SteeringFactorInterface>(this, "intersection");
 
+  // dynamic lanelet loader
+  {
+    is_dynamic_map_loading_enabled_ = true;
+    std::string map_frame = "map";
+    map_update_function_ = std::bind(&BehaviorPathPlannerNode::onMap, this, std::placeholders::_1);
+    map_update_module_ptr_ = std::make_unique<MapUpdateModule>(
+      this, map_update_function_, map_frame);
+  }
+
   // Start timer
   {
     const auto planning_hz = declare_parameter<double>("planning_hz");
